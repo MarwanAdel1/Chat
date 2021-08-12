@@ -1,28 +1,93 @@
-import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
 
 class NewMessage extends StatefulWidget {
+  final String friendId;
+
+  NewMessage(this.friendId);
+
   @override
   _NewMessageState createState() => _NewMessageState();
 }
 
 class _NewMessageState extends State<NewMessage> {
-  final _controller=new TextEditingController();
+  final _controller = new TextEditingController();
   String _enteredMessage = "";
 
-  void _sendMessage() async{
+  void _sendMessage() async {
     FocusScope.of(context).unfocus();
     final user = FirebaseAuth.instance.currentUser;
-    final userData = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
-    FirebaseFirestore.instance.collection('chat').add({
-      'text':_enteredMessage,
-      'createdAt':Timestamp.now(),
+    final userData = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(user.uid)
+        .get();
+
+    final friendData = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(widget.friendId)
+        .get();
+
+    FirebaseFirestore.instance
+        .collection('userChat')
+        .doc(user.uid)
+        .collection('Friends')
+        .doc(widget.friendId)
+        .collection('messages')
+        .add({
+      'text': _enteredMessage,
+      'createdAt': Timestamp.now(),
       'userId': user.uid,
-      'username': userData['username'],
+      'userUsername': userData['username'],
       'userImage': userData['image_url'],
     });
-    _controller.clear();
+
+    FirebaseFirestore.instance
+        .collection('userChat')
+        .doc(widget.friendId)
+        .collection('Friends')
+        .doc(user.uid)
+        .collection('messages')
+        .add({
+      'text': _enteredMessage,
+      'createdAt': Timestamp.now(),
+      'userId': user.uid,
+      'userUsername': userData['username'],
+      'userImage': userData['image_url'],
+    });
+
+    FirebaseFirestore.instance
+        .collection('userChatList')
+        .doc(user.uid)
+        .collection('friends')
+        .doc(widget.friendId)
+        .set({
+      'message': _enteredMessage,
+      'time': Timestamp.now(),
+      'uid': widget.friendId,
+      'username': friendData['username'],
+      'friend_image': friendData['image_url'],
+      'sender_id': user.uid,
+    });
+
+    FirebaseFirestore.instance
+        .collection('userChatList')
+        .doc(widget.friendId)
+        .collection('friends')
+        .doc(user.uid)
+        .set({
+      'message': _enteredMessage,
+      'time': Timestamp.now(),
+      'uid': user.uid,
+      'username': friendData['username'],
+      'friend_image': friendData['image_url'],
+      'sender_id': user.uid,
+    });
+
+    setState(() {
+      _controller.clear();
+      _enteredMessage="";
+    });
   }
 
   @override
@@ -49,7 +114,7 @@ class _NewMessageState extends State<NewMessage> {
             ),
           ),
           IconButton(
-            onPressed: _enteredMessage.trim().isEmpty ? null : _sendMessage,
+            onPressed: _enteredMessage.trim()=="" ? null : _sendMessage,
             icon: Icon(
               Icons.send,
             ),

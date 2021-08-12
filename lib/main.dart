@@ -1,5 +1,8 @@
 import 'package:chat_app/screens/auth_screen.dart';
+import 'package:chat_app/screens/chat_list_screen.dart';
 import 'package:chat_app/screens/chat_screen.dart';
+import 'package:chat_app/screens/find_friends_screen.dart';
+import 'package:chat_app/screens/friends_list_screen.dart';
 import 'package:chat_app/screens/splash_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -37,12 +40,17 @@ class MyApp extends StatelessWidget {
             return SplashScreen();
           }
           if (userSnapshot.hasData) {
-            return ChatScreen();
+            return ChatListScreen();
           } else {
             return AuthScreen();
           }
         },
       ),
+      routes: {
+        ChatScreen.ROUTE_NAME :(ctx) => ChatScreen(),
+        FindFriendScreen.ROUTE_NAME :(ctx) => FindFriendScreen(),
+        FriendsListScreen.ROUTE_NAME :(ctx) => FriendsListScreen(),
+      },
     );
   }
 }

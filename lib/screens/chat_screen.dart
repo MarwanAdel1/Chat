@@ -1,56 +1,46 @@
 import 'package:chat_app/widgets/chat/messages.dart';
 import 'package:chat_app/widgets/chat/new_message.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 
-class ChatScreen extends StatelessWidget {
+class ChatScreen extends StatefulWidget {
+  static const ROUTE_NAME="chat_screen";
+  @override
+  _ChatScreenState createState() => _ChatScreenState();
+}
+
+class _ChatScreenState extends State<ChatScreen> {
+
   @override
   Widget build(BuildContext context) {
+    final routeArguments = ModalRoute.of(context).settings.arguments as Map<String,dynamic>;
+    final friendId = routeArguments['friendId'];
+    final friendUsername = routeArguments['friendUsername'];
+
     return Scaffold(
       appBar: AppBar(
-        title: Text("Chat"),
-        actions: [
-          DropdownButton(
-            underline: Container(),
-            icon: Icon(
-              Icons.more_vert,
-              color: Theme.of(context).primaryIconTheme.color,
-            ),
-            items: [
-              DropdownMenuItem(
-                child: Container(
-                  child: Row(
-                    children: [
-                      Icon(Icons.exit_to_app),
-                      SizedBox(
-                        width: 8,
-                      ),
-                      Text("Logout"),
-                    ],
-                  ),
-                ),
-                value: "logout",
-              ),
-            ],
-            onChanged: (item){
-              if(item=="logout"){
-                FirebaseAuth.instance.signOut();
-              }
-            },
-          ),
-        ],
+        title: Text(friendUsername),
       ),
       body: Container(
         child: Column(
           children: [
             Expanded(
-              child: Messages(),
+              child: Messages(friendId),
             ),
-            NewMessage(),
+            NewMessage(friendId),
           ],
         ),
       ),
     );
+  }
+
+  @override
+  void initState() {
+    super.initState();
+
+    final fbm = FirebaseMessaging.instance;
+    fbm.requestPermission();
+    fbm.subscribeToTopic('chat');
   }
 }

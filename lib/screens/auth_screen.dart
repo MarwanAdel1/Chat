@@ -23,6 +23,10 @@ class _AuthScreenState extends State<AuthScreen> {
       File image,
       bool isLogin,
       BuildContext ctx}) async {
+
+    email.toLowerCase();
+    email.trim();
+
     UserCredential authResult;
     try {
       setState(() {
@@ -35,7 +39,7 @@ class _AuthScreenState extends State<AuthScreen> {
         );
       } else {
         authResult = await _auth.createUserWithEmailAndPassword(
-          email: email,
+          email: email.toLowerCase(),
           password: password,
         );
 
@@ -55,6 +59,7 @@ class _AuthScreenState extends State<AuthScreen> {
           'username': username,
           'email': email,
           'image_url': url,
+          'uid': authResult.user.uid
         });
       }
     } on PlatformException catch (err) {
